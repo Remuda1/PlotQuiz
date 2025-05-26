@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertigo Fun Quiz</title>
+    <title>Movie Quiz Selector</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="quiz-container">
-        <h1>Vertigo Fun Quiz</h1>
-        <p>Test your knowledge of Alfred Hitchcock's masterpiece, *Vertigo*!</p>
+    <div class="main-container">
+        <div class="movie-list-container">
+            <h1>Choose Your Quiz</h1>
+            <ul id="movie-list">
+                </ul>
+        </div>
 
-        <form id="vertigo-quiz-form">
-            </form>
+        <div class="quiz-container" style="display: none;">
+            <h1 id="quiz-title"></h1>
+            <p>Test your knowledge!</p>
 
-        <p class="final-message" style="display: none;">Thanks for playing!</p>
+            <form id="movie-quiz-form">
+                </form>
+
+            <p class="final-message" style="display: none;">Thanks for playing!</p>
+            <button id="back-to-list-btn" style="display: none;">Back to Movie List</button>
+        </div>
     </div>
 
+    <script src="papaparse.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
