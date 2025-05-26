@@ -1,38 +1,67 @@
-// Global variable to store all quiz data after parsing
-let allQuizData = [];
-let availableMovies = []; // To store unique movie titles
+// Global variables
+let allQuizData = []; // Stores all quiz questions after parsing
+let allPlotData = []; // Stores all movie plots after parsing
+let availableMovies = []; // Unique movie titles
 let currentQuizData = []; // Questions for the currently selected movie
 
+// DOM elements
 const movieListComponent = document.getElementById('movie-list');
 const movieSelectionContainer = document.querySelector('.movie-list-container');
 const quizContainer = document.querySelector('.quiz-container');
 const quizForm = document.getElementById('movie-quiz-form');
 const quizTitleElement = document.getElementById('quiz-title');
+const moviePlotElement = document.getElementById('movie-plot'); // New plot element
 const finalMessage = document.querySelector('.final-message');
 const backToListBtn = document.getElementById('back-to-list-btn');
 
-
 // --- CSV Loading and Parsing ---
-function loadQuizzesFromCSV() {
-    // PapaParse.parse expects a path to the file or a string
-    Papa.parse('quizzes.csv', {
-        download: true, // Fetch the file from the server
-        header: true,   // Treat the first row as headers
-        skipEmptyLines: true,
-        complete: function(results) {
-            allQuizData = results.data;
-            populateMovieList();
-        },
-        error: function(err, file) {
-            console.error("Error parsing CSV:", err, file);
-            alert("Failed to load quiz data. Please check quizzes.csv.");
-        }
-    });
+async function loadQuizzesAndPlots() {
+    try {
+        // Load quizzes.csv
+        await new Promise((resolve, reject) => {
+            Papa.parse('quizzes.csv', {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    allQuizData = results.data;
+                    resolve();
+                },
+                error: function(err, file) {
+                    console.error("Error parsing quizzes.csv:", err, file);
+                    reject("Failed to load quiz data.");
+                }
+            });
+        });
+
+        // Load plots.csv
+        await new Promise((resolve, reject) => {
+            Papa.parse('plots.csv', {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    allPlotData = results.data;
+                    resolve();
+                },
+                error: function(err, file) {
+                    console.error("Error parsing plots.csv:", err, file);
+                    reject("Failed to load plot data.");
+                }
+            });
+        });
+
+        // After both are loaded, populate the movie list
+        populateMovieList();
+
+    } catch (error) {
+        alert(error);
+    }
 }
 
 // --- Movie List Population ---
 function populateMovieList() {
-    // Extract unique movie titles
+    // Extract unique movie titles from quiz data
     availableMovies = [...new Set(allQuizData.map(q => q.movie))];
 
     movieListComponent.innerHTML = ''; // Clear previous list
@@ -58,6 +87,17 @@ function selectMovie(movieTitle, selectedListItem) {
     // Filter questions for the selected movie
     currentQuizData = allQuizData.filter(q => q.movie === movieTitle);
     quizTitleElement.textContent = `${movieTitle} Quiz`;
+
+    // Find and display the movie plot
+    const moviePlot = allPlotData.find(p => p.title === movieTitle);
+    if (moviePlot && moviePlot.plot) {
+        moviePlotElement.textContent = moviePlot.plot;
+        moviePlotElement.style.display = 'block'; // Ensure plot is visible
+    } else {
+        moviePlotElement.textContent = 'Plot not available.';
+        moviePlotElement.style.display = 'block';
+    }
+
 
     // Render the quiz questions
     renderQuiz();
@@ -97,8 +137,8 @@ function renderQuiz() {
         // Dynamically get options for the current question
         const optionsKeys = ['option a', 'option b', 'option c', 'option d', 'option e'];
         optionsKeys.forEach(key => {
-            // Only add option if its value exists
-            if (q[key]) {
+            // Only add option if its value exists and is not empty
+            if (q[key] !== undefined && q[key] !== null && q[key].trim() !== '') {
                 const label = document.createElement('label');
                 const input = document.createElement('input');
                 input.type = 'radio';
@@ -147,7 +187,7 @@ function revealExplanation(questionIndex, selectedOptionValue) {
         radio.disabled = true;
         const parentLabel = radio.parentElement;
 
-        // Compare selected value with the correct answer from quizData
+        // Compare selected value with the correct answer from currentQuizData
         if (radio.value === currentQuizData[questionIndex].answer) {
             parentLabel.classList.add('correct');
         } else if (radio.value === selectedOptionValue) {
@@ -167,6 +207,8 @@ backToListBtn.addEventListener('click', () => {
     movieSelectionContainer.style.display = 'block';
     finalMessage.style.display = 'none';
     backToListBtn.style.display = 'none';
+    moviePlotElement.style.display = 'none'; // Hide plot when going back to list
+
     // Clear any selected movie in the list
     const previouslySelected = document.querySelector('#movie-list li.selected');
     if (previouslySelected) {
@@ -176,4 +218,4 @@ backToListBtn.addEventListener('click', () => {
 
 
 // --- Initial Load ---
-document.addEventListener('DOMContentLoaded', loadQuizzesFromCSV);
+document.addEventListener('DOMContentLoaded', loadQuizzesAndPlots);
