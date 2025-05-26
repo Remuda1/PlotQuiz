@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Movie List</title>
+    <title>My Movie List & Quiz</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,40 +15,145 @@
         <div class="movie-details">
             <h2 id="movie-title">Hover over a movie title</h2>
             <p id="movie-plot"></p>
+            <div id="quiz-section">
+                </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const movieList = document.querySelector('.movie-list');
+            const movieTitleDisplay = document.getElementById('movie-title');
+            const moviePlotDisplay = document.getElementById('movie-plot');
+            const quizSection = document.getElementById('quiz-section');
+
+            let moviesData = []; // To store movie data
+            let quizzesData = {}; // To store quiz data, keyed by movie title
+
+            // Function to parse CSV data
+            function parseCSV(csvString) {
+                const rows = csvString.split('\n').map(row => row.trim()).filter(row => row); // Split by new line, trim, and filter out empty rows
+                if (rows.length === 0) return [];
+
+                const headers = rows[0].split(',').map(header => header.trim());
+                const data = [];
+
+                for (let i = 1; i < rows.length; i++) {
+                    const columns = rows[i].split(',');
+                    if (columns.length === headers.length) { // Ensure consistent column count
+                        const rowObject = {};
+                        headers.forEach((header, index) => {
+                            rowObject[header] = columns[index].trim();
+                        });
+                        data.push(rowObject);
+                    }
+                }
+                return data;
+            }
+
+            // Fetch movies.csv
             fetch('movies.csv')
-                .then(response => response.text())
-                .then(data => {
-                    const rows = data.split('\n').slice(1); // Split by new line and remove header row
-                    const movieList = document.querySelector('.movie-list');
-                    const movieTitleDisplay = document.getElementById('movie-title');
-                    const moviePlotDisplay = document.getElementById('movie-plot');
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text();
+                })
+                .then(csvText => {
+                    moviesData = parseCSV(csvText);
 
-                    rows.forEach(row => {
-                        const columns = row.split(',');
-                        if (columns.length >= 2) {
-                            const title = columns[0].trim();
-                            const plot = columns[1].trim();
-
-                            if (title) { // Only add if title is not empty
-                                const listItem = document.createElement('li');
-                                listItem.textContent = title;
-                                listItem.setAttribute('data-plot', plot);
-
-                                listItem.addEventListener('mouseover', function() {
-                                    movieTitleDisplay.textContent = this.textContent;
-                                    moviePlotDisplay.textContent = this.getAttribute('data-plot');
-                                });
-                                movieList.appendChild(listItem);
-                            }
+                    // Fetch quizzes.csv after movies.csv is loaded
+                    return fetch('quizzes.csv');
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text();
+                })
+                .then(csvText => {
+                    const rawQuizzes = parseCSV(csvText);
+                    rawQuizzes.forEach(quiz => {
+                        const movie = quiz.movie;
+                        if (!quizzesData[movie]) {
+                            quizzesData[movie] = [];
                         }
+                        quizzesData[movie].push(quiz);
+                    });
+
+                    // Populate the movie list
+                    moviesData.forEach(movie => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = movie.title;
+                        listItem.setAttribute('data-plot', movie.plot);
+                        listItem.setAttribute('data-movie-title', movie.title); // Store movie title for quiz lookup
+
+                        listItem.addEventListener('mouseover', function() {
+                            const currentMovieTitle = this.getAttribute('data-movie-title');
+                            movieTitleDisplay.textContent = this.textContent;
+                            moviePlotDisplay.textContent = this.getAttribute('data-plot');
+                            displayQuiz(currentMovieTitle);
+                        });
+                        movieList.appendChild(listItem);
                     });
                 })
-                .catch(error => console.error('Error fetching CSV:', error));
+                .catch(error => console.error('Error fetching data:', error));
+
+            function displayQuiz(movieTitle) {
+                quizSection.innerHTML = ''; // Clear previous quiz
+
+                const quizzesForMovie = quizzesData[movieTitle];
+
+                if (quizzesForMovie && quizzesForMovie.length > 0) {
+                    quizzesForMovie.forEach(quiz => {
+                        const quizContainer = document.createElement('div');
+                        quizContainer.classList.add('quiz-item');
+
+                        const questionElement = document.createElement('p');
+                        questionElement.classList.add('question');
+                        questionElement.textContent = quiz.question;
+                        quizContainer.appendChild(questionElement);
+
+                        const optionsList = document.createElement('ul');
+                        optionsList.classList.add('options-list');
+
+                        const options = ['a', 'b', 'c', 'd', 'e'];
+                        options.forEach(optionKey => {
+                            if (quiz[`option ${optionKey}`]) { // Check if option exists
+                                const optionItem = document.createElement('li');
+                                optionItem.classList.add('option');
+                                optionItem.textContent = quiz[`option ${optionKey}`];
+                                optionItem.setAttribute('data-option', optionKey);
+
+                                optionItem.addEventListener('click', function() {
+                                    // Clear previous feedback
+                                    const allOptions = optionsList.querySelectorAll('.option');
+                                    allOptions.forEach(opt => {
+                                        opt.classList.remove('correct', 'incorrect');
+                                    });
+                                    const prevFeedback = quizContainer.querySelector('.feedback');
+                                    if (prevFeedback) prevFeedback.remove();
+
+
+                                    const selectedOption = this.getAttribute('data-option');
+                                    const feedbackElement = document.createElement('p');
+                                    feedbackElement.classList.add('feedback');
+
+                                    if (selectedOption.toUpperCase() === quiz.answer.toUpperCase()) {
+                                        feedbackElement.textContent = `Correct! ${quiz.explanation}`;
+                                        this.classList.add('correct');
+                                    } else {
+                                        feedbackElement.textContent = `Incorrect. The answer is ${quiz.answer.toUpperCase()}. ${quiz.explanation}`;
+                                        this.classList.add('incorrect');
+                                    }
+                                    quizContainer.appendChild(feedbackElement);
+                                });
+                                optionsList.appendChild(optionItem);
+                            }
+                        });
+                        quizContainer.appendChild(optionsList);
+                        quizSection.appendChild(quizContainer);
+                    });
+                } else {
+                    quizSection.textContent = 'No quiz available for this movie.';
+                }
+            }
         });
     </script>
 </body>
