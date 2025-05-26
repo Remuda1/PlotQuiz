@@ -6,8 +6,8 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    padding: 20px; /* Add some padding for smaller screens */
-    box-sizing: border-box; /* Include padding in element's total width and height */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .quiz-container {
@@ -17,7 +17,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 100%;
-    max-width: 700px; /* Wider for better readability of questions */
+    max-width: 700px;
 }
 
 h1 {
@@ -31,24 +31,24 @@ p {
 }
 
 .question-block {
-    background-color: #e9f0f7; /* Light blue background for each question */
+    background-color: #e9f0f7;
     border: 1px solid #cce0f0;
     padding: 20px;
     margin-bottom: 25px;
     border-radius: 8px;
     text-align: left;
-    position: relative; /* For explanation positioning */
+    position: relative;
 }
 
 .question-block h2 {
-    color: #2c3e50; /* Darker blue for question text */
+    color: #2c3e50;
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.2em;
 }
 
 .options-group label {
-    display: block; /* Each option on a new line */
+    display: block;
     background-color: #ffffff;
     border: 1px solid #ddd;
     padding: 12px;
@@ -56,7 +56,7 @@ p {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    display: flex; /* Align radio button and text */
+    display: flex;
     align-items: center;
 }
 
@@ -66,17 +66,13 @@ p {
 
 .options-group input[type="radio"] {
     margin-right: 10px;
-    transform: scale(1.2); /* Make radio buttons slightly larger */
+    transform: scale(1.2);
 }
 
-/* Style for selected option */
+/* Style for the selected option's label and text (before checking correctness) */
 .options-group input[type="radio"]:checked + span {
     font-weight: bold;
-    color: #0056b3; /* Darker blue for selected text */
-}
-
-.options-group input[type="radio"]:checked + span::before {
-    content: '✅ '; /* Checkmark for selected (optional) */
+    color: #0056b3;
 }
 
 /* Style for explanation */
@@ -84,8 +80,8 @@ p {
     margin-top: 15px;
     padding: 15px;
     border-radius: 5px;
-    background-color: #d4edda; /* Greenish background for correct explanation */
-    color: #155724; /* Dark green text */
+    background-color: #d4edda;
+    color: #155724;
     border: 1px solid #c3e6cb;
     font-size: 0.95em;
     line-height: 1.4;
@@ -94,18 +90,27 @@ p {
     font-style: italic;
 }
 
-/* Style for incorrect selection (optional, but good for feedback) */
-.options-group input[type="radio"]:checked.incorrect-selection + span {
-    color: #dc3545; /* Red for incorrect */
-    font-weight: bold;
+/* Styles applied by JavaScript AFTER an answer is selected */
+.options-group label.correct {
+    background-color: #d4edda; /* Light green for correct */
+    border-color: #28a745;
 }
 
-/* Style for the correct option when an answer is selected */
-.options-group input[type="radio"][data-is-correct="true"] + span {
-    background-color: #e6ffe6; /* Very light green for correct option */
-    border-color: #28a745;
-    font-weight: bold;
+.options-group label.incorrect {
+    background-color: #f8d7da; /* Light red for incorrect */
+    border-color: #dc3545;
 }
+
+.options-group label.correct span {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.options-group label.incorrect span {
+    font-weight: bold;
+    color: #dc3545;
+}
+
 
 .final-message {
     font-size: 1.5em;
