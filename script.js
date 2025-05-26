@@ -138,7 +138,7 @@ function renderQuiz() {
     quizData.forEach((q, index) => {
         const questionBlock = document.createElement('div');
         questionBlock.classList.add('question-block');
-        questionBlock.setAttribute('data-question-index', index); // Add index for easy reference
+        questionBlock.setAttribute('data-question-index', index);
 
         const questionText = document.createElement('h2');
         questionText.textContent = `${index + 1}. ${q.question}`;
@@ -160,9 +160,8 @@ function renderQuiz() {
                 const label = document.createElement('label');
                 const input = document.createElement('input');
                 input.type = 'radio';
-                input.name = `question-${index}`; // Unique name for each question's radio group
-                input.value = key.toUpperCase(); // Store A, B, C etc.
-                input.setAttribute('data-is-correct', (key.toUpperCase() === q.answer).toString()); // Mark correct option
+                input.name = `question-${index}`;
+                input.value = key.toUpperCase();
 
                 const span = document.createElement('span');
                 span.textContent = `${optionLabels[key]}. ${q.options[key]}`;
@@ -197,17 +196,13 @@ function revealExplanation(questionIndex, selectedOptionValue) {
     // Disable all radio buttons for this question once an answer is selected
     radioButtons.forEach(radio => {
         radio.disabled = true;
-        const optionSpan = radio.nextElementSibling; // The span next to the radio input
+        const parentLabel = radio.parentElement; // The <label> element
 
-        // Visually mark correct and incorrect choices
+        // Apply correct/incorrect classes to the parent label
         if (radio.value === quizData[questionIndex].answer) {
-            radio.parentElement.classList.add('correct'); // Add class to the parent label for styling
-            optionSpan.style.color = '#28a745'; // Green for correct
-            optionSpan.style.fontWeight = 'bold';
+            parentLabel.classList.add('correct'); // Add class to the label for styling
         } else if (radio.value === selectedOptionValue) {
-            radio.parentElement.classList.add('incorrect'); // Add class to the parent label for styling
-            optionSpan.style.color = '#dc3545'; // Red for incorrect
-            optionSpan.style.fontWeight = 'bold';
+            parentLabel.classList.add('incorrect'); // Add class to the label for styling
         }
     });
 
