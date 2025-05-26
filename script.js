@@ -196,24 +196,29 @@ function revealExplanation(questionIndex, selectedOptionValue) {
     // Disable all radio buttons for this question once an answer is selected
     radioButtons.forEach(radio => {
         radio.disabled = true;
-        const parentLabel = radio.parentElement; // The <label> element
+        const parentLabel = radio.parentElement;
 
         // Apply correct/incorrect classes to the parent label
         if (radio.value === quizData[questionIndex].answer) {
-            parentLabel.classList.add('correct'); // Add class to the label for styling
+            parentLabel.classList.add('correct');
         } else if (radio.value === selectedOptionValue) {
-            parentLabel.classList.add('incorrect'); // Add class to the label for styling
+            parentLabel.classList.add('incorrect');
         }
     });
 
-    // Scroll to the next question if it exists
-    if (questionIndex < quizData.length - 1) {
-        const nextQuestionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex + 1}"]`);
-        if (nextQuestionBlock) {
-            nextQuestionBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    } else {
-        // If it's the last question, show the final message
+    // --- REMOVED AUTO-SCROLL LOGIC HERE ---
+    // if (questionIndex < quizData.length - 1) {
+    //     const nextQuestionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex + 1}"]`);
+    //     if (nextQuestionBlock) {
+    //         nextQuestionBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    //     }
+    // } else {
+    //     // If it's the last question, show the final message
+    //     finalMessage.style.display = 'block';
+    // }
+
+    // Always show the final message if it's the last question, regardless of scroll
+    if (questionIndex === quizData.length - 1) {
         finalMessage.style.display = 'block';
     }
 }
