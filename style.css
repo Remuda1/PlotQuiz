@@ -3,7 +3,7 @@ body {
     background-color: #f4f4f4;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align to the top */
+    align-items: flex-start;
     min-height: 100vh;
     margin: 0;
     padding: 20px;
@@ -11,22 +11,22 @@ body {
 }
 
 .main-container {
-    display: flex; /* Use flexbox for side-by-side layout */
+    display: flex;
     width: 100%;
-    max-width: 1200px; /* Wider main container */
-    gap: 20px; /* Space between list and quiz */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    max-width: 1200px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .movie-list-container {
-    flex: 1; /* Takes up available space */
-    min-width: 200px; /* Minimum width for the list */
+    flex: 1;
+    min-width: 200px;
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
-    margin-bottom: 20px; /* For smaller screens when wrapped */
+    margin-bottom: 20px;
 }
 
 .movie-list-container h1 {
@@ -66,19 +66,32 @@ body {
 
 
 .quiz-container {
-    flex: 2; /* Takes up more space than the list */
+    flex: 2;
     background-color: #fff;
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
-    /* This will be shown/hidden by JS */
 }
 
 .quiz-container h1 {
     color: #333;
     margin-bottom: 10px;
 }
+
+/* New style for movie plot */
+.movie-plot {
+    background-color: #f8f9fa; /* Light grey background */
+    border-left: 5px solid #007bff; /* Blue left border */
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+    text-align: left;
+    font-size: 0.95em;
+    line-height: 1.5;
+    color: #495057;
+}
+
 
 .quiz-container p {
     color: #555;
@@ -172,7 +185,7 @@ body {
 }
 
 #back-to-list-btn {
-    background-color: #6c757d; /* Grey button */
+    background-color: #6c757d;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -186,13 +199,12 @@ body {
     background-color: #5a6268;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .main-container {
-        flex-direction: column; /* Stack vertically on small screens */
+        flex-direction: column;
     }
     .movie-list-container, .quiz-container {
-        min-width: unset; /* Remove min-width */
+        min-width: unset;
         width: 100%;
     }
 }
