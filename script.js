@@ -131,132 +131,97 @@ const quizData = [
     }
 ];
 
-let currentQuestionIndex = 0;
-let score = 0;
-let selectedOption = null;
+const quizForm = document.getElementById('vertigo-quiz-form');
+const finalMessage = document.querySelector('.final-message');
 
-const questionEl = document.getElementById('question');
-const optionsContainer = document.getElementById('options-container');
-const submitBtn = document.getElementById('submit-btn');
-const feedbackEl = document.getElementById('feedback');
-const questionContainer = document.getElementById('question-container');
-const resultsContainer = document.getElementById('results-container');
-const scoreSpan = document.getElementById('score');
-const totalQuestionsSpan = document.getElementById('total-questions');
-const restartBtn = document.getElementById('restart-btn');
+function renderQuiz() {
+    quizData.forEach((q, index) => {
+        const questionBlock = document.createElement('div');
+        questionBlock.classList.add('question-block');
+        questionBlock.setAttribute('data-question-index', index); // Add index for easy reference
 
-function loadQuestion() {
-    selectedOption = null;
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'feedback'; // Reset classes
+        const questionText = document.createElement('h2');
+        questionText.textContent = `${index + 1}. ${q.question}`;
+        questionBlock.appendChild(questionText);
 
-    const currentQuiz = quizData[currentQuestionIndex];
-    questionEl.textContent = currentQuiz.question;
-    optionsContainer.innerHTML = ''; // Clear previous options
+        const optionsGroup = document.createElement('div');
+        optionsGroup.classList.add('options-group');
 
-    // Map option keys to display letters
-    const optionLabels = {
-        a: 'A',
-        b: 'B',
-        c: 'C',
-        d: 'D',
-        e: 'E'
-    };
+        const optionLabels = {
+            a: 'A',
+            b: 'B',
+            c: 'C',
+            d: 'D',
+            e: 'E'
+        };
 
-    for (const key in currentQuiz.options) {
-        if (currentQuiz.options.hasOwnProperty(key)) {
-            const optionDiv = document.createElement('div');
-            optionDiv.classList.add('option');
-            optionDiv.dataset.option = key.toUpperCase(); // Store A, B, C etc.
-            optionDiv.textContent = `${optionLabels[key]}. ${currentQuiz.options[key]}`;
-            optionDiv.addEventListener('click', () => selectOption(optionDiv));
-            optionsContainer.appendChild(optionDiv);
+        for (const key in q.options) {
+            if (q.options.hasOwnProperty(key)) {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = `question-${index}`; // Unique name for each question's radio group
+                input.value = key.toUpperCase(); // Store A, B, C etc.
+                input.setAttribute('data-is-correct', (key.toUpperCase() === q.answer).toString()); // Mark correct option
+
+                const span = document.createElement('span');
+                span.textContent = `${optionLabels[key]}. ${q.options[key]}`;
+
+                label.appendChild(input);
+                label.appendChild(span);
+                optionsGroup.appendChild(label);
+
+                // Add event listener to reveal explanation on selection
+                input.addEventListener('change', () => revealExplanation(index, input.value));
+            }
         }
-    }
-    submitBtn.textContent = 'Submit Answer';
-    submitBtn.disabled = false;
+        questionBlock.appendChild(optionsGroup);
+
+        const explanationDiv = document.createElement('div');
+        explanationDiv.classList.add('explanation');
+        explanationDiv.textContent = q.explanation;
+        questionBlock.appendChild(explanationDiv);
+
+        quizForm.appendChild(questionBlock);
+    });
 }
 
-function selectOption(optionDiv) {
-    // Remove 'selected' class from previously selected option
-    if (selectedOption) {
-        selectedOption.classList.remove('selected');
-    }
-    selectedOption = optionDiv;
-    selectedOption.classList.add('selected');
-}
+function revealExplanation(questionIndex, selectedOptionValue) {
+    const questionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex}"]`);
+    const explanationDiv = questionBlock.querySelector('.explanation');
+    const radioButtons = questionBlock.querySelectorAll('input[type="radio"]');
 
-function checkAnswer() {
-    if (!selectedOption) {
-        feedbackEl.textContent = 'Please select an answer!';
-        feedbackEl.classList.add('incorrect-text'); // Use a generic warning color
-        return;
-    }
+    // Show the explanation
+    explanationDiv.style.display = 'block';
 
-    submitBtn.disabled = true; // Prevent multiple submissions for the same question
+    // Disable all radio buttons for this question once an answer is selected
+    radioButtons.forEach(radio => {
+        radio.disabled = true;
+        const optionSpan = radio.nextElementSibling; // The span next to the radio input
 
-    const userAnswer = selectedOption.dataset.option;
-    const correctAnswer = quizData[currentQuestionIndex].answer;
-    const explanation = quizData[currentQuestionIndex].explanation;
-
-    // Apply styling based on correctness
-    const allOptions = optionsContainer.querySelectorAll('.option');
-    allOptions.forEach(option => {
-        option.removeEventListener('click', () => selectOption(option)); // Disable clicking after submission
-        if (option.dataset.option === correctAnswer) {
-            option.classList.add('correct');
-        } else if (option.dataset.option === userAnswer) {
-            option.classList.add('incorrect');
+        // Visually mark correct and incorrect choices
+        if (radio.value === quizData[questionIndex].answer) {
+            radio.parentElement.classList.add('correct'); // Add class to the parent label for styling
+            optionSpan.style.color = '#28a745'; // Green for correct
+            optionSpan.style.fontWeight = 'bold';
+        } else if (radio.value === selectedOptionValue) {
+            radio.parentElement.classList.add('incorrect'); // Add class to the parent label for styling
+            optionSpan.style.color = '#dc3545'; // Red for incorrect
+            optionSpan.style.fontWeight = 'bold';
         }
     });
 
-    if (userAnswer === correctAnswer) {
-        score++;
-        feedbackEl.textContent = `Correct! ${explanation}`;
-        feedbackEl.classList.add('correct-text');
+    // Scroll to the next question if it exists
+    if (questionIndex < quizData.length - 1) {
+        const nextQuestionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex + 1}"]`);
+        if (nextQuestionBlock) {
+            nextQuestionBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     } else {
-        feedbackEl.textContent = `Incorrect. The correct answer was ${correctAnswer}. ${explanation}`;
-        feedbackEl.classList.add('incorrect-text');
-    }
-
-    // Change button text to "Next Question" or "View Results"
-    if (currentQuestionIndex < quizData.length - 1) {
-        submitBtn.textContent = 'Next Question';
-        submitBtn.onclick = nextQuestion;
-    } else {
-        submitBtn.textContent = 'View Results';
-        submitBtn.onclick = showResults;
+        // If it's the last question, show the final message
+        finalMessage.style.display = 'block';
     }
 }
 
-function nextQuestion() {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < quizData.length) {
-        loadQuestion();
-        submitBtn.onclick = checkAnswer; // Revert button click to checkAnswer
-    } else {
-        showResults();
-    }
-}
-
-function showResults() {
-    questionContainer.style.display = 'none';
-    resultsContainer.style.display = 'block';
-    scoreSpan.textContent = score;
-    totalQuestionsSpan.textContent = quizData.length;
-}
-
-function restartQuiz() {
-    currentQuestionIndex = 0;
-    score = 0;
-    selectedOption = null;
-    resultsContainer.style.display = 'none';
-    questionContainer.style.display = 'block';
-    loadQuestion();
-    submitBtn.onclick = checkAnswer;
-}
-
-// Initial load
-loadQuestion();
-submitBtn.addEventListener('click', checkAnswer);
-restartBtn.addEventListener('click', restartQuiz);
+// Render the quiz when the page loads
+document.addEventListener('DOMContentLoaded', renderQuiz);
